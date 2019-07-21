@@ -1,0 +1,11 @@
+#virtual environment
+hacknights
+
+#data folder
+data
+
+#notebook checkpoints
+.ipynb_checkpoints
+
+#tensorflow logs
+tensorboard_logs
