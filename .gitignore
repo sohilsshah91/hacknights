@@ -3,6 +3,7 @@ hacknights
 
 #data folder
 data
+data/*
 
 #notebook checkpoints
 .ipynb_checkpoints
