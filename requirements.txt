@@ -7,3 +7,4 @@ tensorflow
 keras
 ipykernel
 wget
+IRkernel #https://github.com/IRkernel/IRkernel
