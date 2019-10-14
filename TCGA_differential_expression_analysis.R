@@ -11,7 +11,8 @@ cat(paste0("start: ",start_time,"\n"))
 #' -----------
 #' Rscript TCGA_differential_expression_analysis.R "" lihc_rnaseq.csv.gz lihc_clinical.csv.gz 100 patient.race asian white
 #' Rscript TCGA_differential_expression_analysis.R "" lihc_rnaseq.csv.gz lihc_clinical.csv.gz 100 patient.gender female male
-#' 
+#' Rscript TCGA_differential_expression_analysis.R "" lihc_rnaseq.csv.gz lihc_clinical.csv.gz full patient.ethnicity "hispanic or latino" "not hispanic or latino"
+#' Rscript TCGA_differential_expression_analysis.R "" lihc_rnaseq.csv.gz lihc_clinical.csv.gz full patient.vital_status dead alive
 #' 
 #' 
 # install packages/load libraries -----------------------------------------
