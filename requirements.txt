@@ -9,4 +9,3 @@ ipykernel
 wget
 pybiomart
 seaborn
-IRkernel #https://github.com/IRkernel/IRkernel
