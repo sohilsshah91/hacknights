@@ -9,3 +9,4 @@ ipykernel
 wget
 pybiomart
 seaborn
+plotly
