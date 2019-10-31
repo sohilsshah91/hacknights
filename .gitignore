@@ -10,3 +10,5 @@ data/*
 
 #tensorflow logs
 tensorboard_logs
+
+.DS_Store
