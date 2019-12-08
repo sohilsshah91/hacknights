@@ -50,9 +50,9 @@ data_dir <- args[1]
 #data_dir <- ""
 rnaseq_file <- args[2]
 #rnaseq_file <- "lihc_rnaseq.csv.gz"
-clinical_file <- args[3]
+#clinical_file <- args[3]
 #clinical_file <- "lihc_clinical.csv.gz"
-gene_size <- args[4]
+gene_size <- args[3]
 #gene_size <- 1e2
 
 #cancer_type <- strsplit(rnaseq_file,"_")[[1]][1]
@@ -60,11 +60,11 @@ cancer_type <- 'lihc'
 
 outfile <- paste0(cancer_type,"_DESeq2_")
 
-response_name <- args[5]
+response_name <- args[4]
 #response_name <- "patient.race"
-t <- args[6]
+t <- args[5]
 #t <- "white"
-c <- args[7]
+c <- args[6]
 #c <- "asian"
 
 # load data ---------------------------------------------------------------
@@ -89,12 +89,7 @@ rnaseq_data_clean$bcr_patient_barcode <-
     )
   )
 
-colData <-
-  inner_join(
-    rnaseq_data_clean %>% select(bcr_patient_barcode),
-    clinical_data,
-    by=c("bcr_patient_barcode"="patient.bcr_patient_barcode")
-    )
+colData <- rnaseq_data_clean %>% select(bcr_patient_barcode, response_name)
 
 eligible_responses <-
   colnames(colData)[
@@ -121,7 +116,7 @@ rsem.in <- data.frame(
     )
   )
 
-if(is.numeric(as.integer(gene_size)) & is.integer(gene_size)){
+if(is.numeric(as.integer(gene_size)) || is.integer(gene_size)){
   rsem.in.sub <- rsem.in[sample(1:nrow(rsem.in),gene_size),]
 }
 if(gene_size=="full"){
@@ -133,9 +128,9 @@ if(gene_size=="full"){
 
 formula <- as.formula(paste0("~",response_name))
 
-suppressMessages(dds <- DESeqDataSetFromMatrix(ceiling(rsem.in.sub),
+suppressMessages(dds <- subset(DESeqDataSetFromMatrix(ceiling(rsem.in.sub),
                               colData_filled,
-                              formula))
+                              formula)), select=-c(response_name)
 
 
 res <- DESeq(dds)
