@@ -131,7 +131,7 @@ rsem.in <- data.frame(
     )
   )
 
-if(is.numeric(as.integer(gene_size)) & is.integer(gene_size)){
+if(is.numeric(as.integer(gene_size))){
   rsem.in.sub <- rsem.in[sample(1:nrow(rsem.in),gene_size),]
 }
 if(gene_size=="full"){
