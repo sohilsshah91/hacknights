@@ -9,10 +9,7 @@ cat(paste0("start: ",start_time,"\n"))
 
 #' EXAMPLE RUN
 #' -----------
-#' Rscript TCGA_differential_expression_analysis.R "" lihc_rnaseq.csv.gz lihc_clinical.csv.gz 100 patient.race asian white
-#' Rscript TCGA_differential_expression_analysis.R "" lihc_rnaseq.csv.gz lihc_clinical.csv.gz 100 patient.gender female male
-#' Rscript TCGA_differential_expression_analysis.R "" lihc_rnaseq.csv.gz lihc_clinical.csv.gz full patient.ethnicity "hispanic or latino" "not hispanic or latino"
-#' Rscript TCGA_differential_expression_analysis.R "" lihc_rnaseq.csv.gz lihc_clinical.csv.gz full patient.vital_status dead alive
+#' Rscript TCGA_differential_expression_analysis.R 100 i ii 
 #'
 #'
 # install packages/load libraries -----------------------------------------
@@ -46,37 +43,41 @@ set.seed(42)
 
 args = commandArgs(trailingOnly=TRUE)
 
-data_dir <- args[1]
-#data_dir <- ""
-rnaseq_file <- args[2]
-#rnaseq_file <- "lihc_rnaseq.csv.gz"
-#clinical_file <- args[3]
-#clinical_file <- "lihc_clinical.csv.gz"
-gene_size <- args[3]
+data_dir <- ""
+rnaseq_file <- "X.csv.gzip"
+clinical_file <- "y.csv"
+gene_size <- args[1]
 #gene_size <- 1e2
 
-#cancer_type <- strsplit(rnaseq_file,"_")[[1]][1]
 cancer_type <- 'lihc'
 
 outfile <- paste0(cancer_type,"_DESeq2_")
 
-response_name <- args[4]
-#response_name <- "patient.race"
-t <- args[5]
-#t <- "white"
-c <- args[6]
-#c <- "asian"
+response_name <- "tumor_stage"
+t <- args[2]
+#t <- "i"
+c <- args[3]
+#c <- "ii"
 
 # load data ---------------------------------------------------------------
 
-#rnaseq_data <- read_csv(paste0(data_dir,rnaseq_file))
-#clinical_data <- read_csv(paste0(data_dir,clinical_file)) %>%
-#  data.frame()
-rnaseq_data <- read_csv(paste0(data_dir,rnaseq_file))
+clinical_data <- read_csv(paste0(data_dir,clinical_file)) %>%
+  as_tibble() %>% 
+  rename(
+    "bcr_patient_barcode" = "X1"
+  )
+rnaseq_data <- 
+  paste0(data_dir,rnaseq_file) %>% 
+  gzfile() %>% 
+  read.table(sep = ",",header = T) %>% 
+  as_tibble() %>% 
+  rename(
+    "bcr_patient_barcode" = "X"
+  )
 
 # clean rnaseq data for input ----------------------------------------------------
 
-rnaseq_data_clean <- rnaseq_data
+rnaseq_data_clean <- inner_join(rnaseq_data,clinical_data)
 
 # DE analysis -------------------------------------------------------------
 
@@ -89,26 +90,11 @@ rnaseq_data_clean$bcr_patient_barcode <-
     )
   )
 
-colData <- rnaseq_data_clean %>% select(bcr_patient_barcode, response_name)
+colDat <- rnaseq_data_clean %>% select(bcr_patient_barcode, response_name)
 
-eligible_responses <-
-  colnames(colData)[
-    apply(colData,2,function(x){sum(!is.na(x))>(nrow(colData)*.9)})
-    ]
-
-colData_filled <-
-  apply(colData %>% select(eligible_responses),
-        2,
-        function(x){
-          tab <- table(unname(unlist(x)))
-          mode <- names(tab)[order(tab)][1]
-          x[is.na(x)] <- mode
-          factor(x)
-          }
-        )
 
 rows.to.keep <-
-  rnaseq_data_clean$bcr_patient_barcode %in% colData$bcr_patient_barcode
+  rnaseq_data_clean$bcr_patient_barcode %in% colDat$bcr_patient_barcode
 
 rsem.in <- data.frame(
   t(
@@ -118,19 +104,22 @@ rsem.in <- data.frame(
 
 if(is.numeric(as.integer(gene_size)) || is.integer(gene_size)){
   rsem.in.sub <- rsem.in[sample(1:nrow(rsem.in),gene_size),]
+  rows <- rownames(rsem.in.sub)
+  rsem.in.sub <- apply(rsem.in.sub,2,as.integer)
+  rownames(rsem.in.sub) <- rows
 }
 if(gene_size=="full"){
   rsem.in.sub <- rsem.in
+  rows <- rownames(rsem.in.sub)
+  rsem.in.sub <- apply(rsem.in.sub,2,as.integer)
+  rownames(rsem.in.sub) <- rows
 }
-
-#converting rsem to whole integers per
-#https://www.biostars.org/p/320594/
 
 formula <- as.formula(paste0("~",response_name))
 
-suppressMessages(dds <- subset(DESeqDataSetFromMatrix(ceiling(rsem.in.sub),
-                              colData_filled,
-                              formula)), select=-c(response_name)
+suppressMessages(dds <- 
+                   DESeqDataSetFromMatrix(rsem.in.sub,
+                                          colDat,formula))
 
 
 res <- DESeq(dds)
