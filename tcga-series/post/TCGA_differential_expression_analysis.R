@@ -102,7 +102,7 @@ rsem.in <- data.frame(
     )
   )
 
-if(is.numeric(as.integer(gene_size)) || is.integer(gene_size)){
+if(!is.na(as.integer(gene_size))){
   rsem.in.sub <- rsem.in[sample(1:nrow(rsem.in),gene_size),]
   rows <- rownames(rsem.in.sub)
   rsem.in.sub <- apply(rsem.in.sub,2,as.integer)
@@ -113,6 +113,7 @@ if(gene_size=="full"){
   rows <- rownames(rsem.in.sub)
   rsem.in.sub <- apply(rsem.in.sub,2,as.integer)
   rownames(rsem.in.sub) <- rows
+  rsem.in.sub <- na.omit(rsem.in.sub)
 }
 
 formula <- as.formula(paste0("~",response_name))
